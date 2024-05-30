@@ -1,4 +1,5 @@
 const User = require('../../../models/user.js');
+const Role = require('../../../models/role.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 import Joi from "joi";
@@ -36,9 +37,14 @@ const UserMutationResolvers = {
 
   CreateUser: async (_, { input }, context) => {
     try {
-      const { firstName, lastName, userName, email, password, dateOfBirth } = input;
+      const { firstName, lastName, userName, email, password, dateOfBirth, roles } = input;
 
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      const roleDocs = await Role.find({ _id: { $in: roles } });
+      if (roleDocs.length !== roles.length) {
+          throw new Error('Some roles not found');
+      }
 
       const newUser = new User({
         firstName,
@@ -47,11 +53,15 @@ const UserMutationResolvers = {
         email,
         password: hashedPassword,
         dateOfBirth,
+        roles: roleDocs.map(role => role._id)
       });
 
       const user = await newUser.save();
 
-      return user;
+      const populatedUser = await User.findById(user._id).populate('roles');
+
+
+      return populatedUser;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
@@ -80,18 +90,17 @@ const UserMutationResolvers = {
 
   DeleteUser: async (_, { id }, context) => {
     try {
-      const user = await User.findById(id);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      await user.remove();
-
-      return { message: 'User deleted successfully' };
+        const deletedUser = await User.deleteOne({ _id: id });
+        if (deletedUser.deletedCount === 0) {
+            throw new Error('User not found');
+        }
+        return true; // Return true if deletion is successful
     } catch (error) {
-      throw new Error(`Failed to delete user: ${error.message}`);
+        throw new Error(`Failed to delete user: ${error.message}`);
     }
-  },
+},
+
+
 };
 
 module.exports = UserMutationResolvers;

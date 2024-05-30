@@ -11,7 +11,8 @@ const userType = gql`
     dateOfBirth: String
     createdAt: String
     updatedAt: String
-  }
+    roles: [Role]
+    }
 
   input UserInput {
     firstName: String
@@ -20,6 +21,7 @@ const userType = gql`
     email: String
     password: String
     dateOfBirth: String
+    roles: [ID]!
   }
 
   type SuccessFullyCreatedUser {

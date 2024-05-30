@@ -14,8 +14,11 @@ const password = Joi.string().min(6).max(255).label("Password");
 
 const dateOfBirth = Joi.date().label("Date of Birth");
 
+const userId = Joi.string().label("User ID");
+
 export const CreateUser = Joi.object().keys({
   _id: objectId,
+  userId,
   firstName,
   lastName,
   userName,
@@ -26,6 +29,7 @@ export const CreateUser = Joi.object().keys({
 
 export const UpdateUser = Joi.object().keys({
   _id: objectId,
+  userId,
   firstName,
   lastName,
   userName,
@@ -36,6 +40,7 @@ export const UpdateUser = Joi.object().keys({
 
 export const DeleteUser = Joi.object().keys({
   _id: objectId,
+  userId, 
 });
 
 export const LoginUser = Joi.object().keys({
