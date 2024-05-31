@@ -35,17 +35,26 @@ const UserMutationResolvers = {
     }
   },
 
-  CreateUser: async (_, { input }, context) => {
+   CreateUser : async (_, { input }, context) => {
     try {
       const { firstName, lastName, userName, email, password, dateOfBirth, roles } = input;
-
+  
+      if (!firstName || !lastName || !userName || !email || !password || !dateOfBirth || !roles.length) {
+        throw new Error('All fields must be filled');
+      }
+  
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Invalid email format');
+      }
+  
       const hashedPassword = await bcrypt.hash(password, 10);
-
+  
       const roleDocs = await Role.find({ _id: { $in: roles } });
       if (roleDocs.length !== roles.length) {
-          throw new Error('Some roles not found');
+        throw new Error('Some roles not found');
       }
-
+  
       const newUser = new User({
         firstName,
         lastName,
@@ -55,39 +64,54 @@ const UserMutationResolvers = {
         dateOfBirth,
         roles: roleDocs.map(role => role._id)
       });
-
+  
       const user = await newUser.save();
-
+  
       const populatedUser = await User.findById(user._id).populate('roles');
-
-
+  
       return populatedUser;
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
   },
   
-  UpdateUser: async (_, { id, input }, context) => {
+   UpdateUser : async (_, { id, input }, context) => {
     try {
       const user = await User.findById(id);
       if (!user) {
         throw new Error('User not found');
       }
-
-      user.firstName = input.firstName;
-      user.lastName = input.lastName;
-      user.userName = input.userName;
-      user.email = input.email;
-      user.dateOfBirth = input.dateOfBirth;
-
+  
+      const { firstName, lastName, userName, email, password, dateOfBirth } = input;
+  
+      if (!firstName || !lastName || !userName || !email || !dateOfBirth) {
+        throw new Error('All fields must be filled');
+      }
+  
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Invalid email format');
+      }
+  
+      user.firstName = firstName;
+      user.lastName = lastName;
+      user.userName = userName;
+      user.email = email;
+      user.dateOfBirth = dateOfBirth;
+  
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+      }
+  
       await user.save();
-
+  
       return user;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }
   },
-
+  
   DeleteUser: async (_, { id }, context) => {
     try {
         const deletedUser = await User.deleteOne({ _id: id });
