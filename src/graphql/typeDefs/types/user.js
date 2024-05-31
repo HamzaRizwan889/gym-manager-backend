@@ -12,6 +12,7 @@ const userType = gql`
     createdAt: String
     updatedAt: String
     roles: [Role]
+    membership: [Membership]
     }
 
   input UserInput {
@@ -22,6 +23,7 @@ const userType = gql`
     password: String
     dateOfBirth: String
     roles: [ID]!
+    membership: [ID]!
   }
 
   type SuccessFullyCreatedUser {

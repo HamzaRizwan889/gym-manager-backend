@@ -9,7 +9,8 @@ const userSchema = new Schema(
         email: { type: String },
         password: { type: String },
         dateOfBirth: { type: String },
-        roles: [{ type: Schema.Types.ObjectId, ref: "Role" }] 
+        roles: [{ type: Schema.Types.ObjectId, ref: "Role" }] ,
+        membership: [{ type: Schema.Types.ObjectId, ref: "Membership" }] 
     },
     { timestamps: true }
 );
